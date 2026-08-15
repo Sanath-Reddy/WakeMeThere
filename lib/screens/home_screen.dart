@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/alarm_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,7 +35,7 @@ class HomeScreen extends ConsumerWidget {
                     subtitle: Text('Radius: ${alarm.radiusInMeters.toInt()}m'),
                     trailing: Switch(
                       value: alarm.isActive,
-                      activeColor: Theme.of(context).colorScheme.primary,
+                      activeThumbColor: Theme.of(context).colorScheme.primary,
                       onChanged: (_) {
                         ref.read(alarmProvider.notifier).toggleAlarm(alarm.id);
                       },

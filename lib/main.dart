@@ -22,7 +22,7 @@ void main() async {
 }
 
 class GeoAlarmApp extends StatelessWidget {
-  const GeoAlarmApp({Key? key}) : super(key: key);
+  const GeoAlarmApp({super.key});
 
   @override
   Widget build(BuildContext context) {

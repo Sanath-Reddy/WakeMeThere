@@ -6,7 +6,7 @@ class NotificationService {
   static Future<void> initialize() async {
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
     const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
-    await _notificationsPlugin.initialize(initializationSettings);
+    await _notificationsPlugin.initialize(settings: initializationSettings);
   }
 
   static Future<void> showNotification(String title, String body) async {
@@ -20,10 +20,10 @@ class NotificationService {
     );
     const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
     await _notificationsPlugin.show(
-      DateTime.now().millisecond,
-      title,
-      body,
-      platformChannelSpecifics,
+      id: DateTime.now().millisecond,
+      title: title,
+      body: body,
+      notificationDetails: platformChannelSpecifics,
     );
   }
 }

@@ -7,16 +7,18 @@ import 'package:go_router/go_router.dart';
 import '../providers/alarm_provider.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
-  const MapScreen({Key? key}) : super(key: key);
+  const MapScreen({super.key});
 
   @override
   ConsumerState<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends ConsumerState<MapScreen> {
-  LatLng? _currentLocation;
+
   LatLng? _selectedLocation;
   final MapController _mapController = MapController();
+  bool _isMapReady = false;
+  LatLng? _fetchedLocation;
   double _radius = 500; // default 500m
 
   @override
@@ -41,10 +43,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     if (permission == LocationPermission.deniedForever) return;
 
     Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      _currentLocation = LatLng(position.latitude, position.longitude);
-    });
-    _mapController.move(_currentLocation!, 15.0);
+    if (!mounted) return;
+    
+    _fetchedLocation = LatLng(position.latitude, position.longitude);
+    if (_isMapReady) {
+      _mapController.move(_fetchedLocation!, 15.0);
+    }
   }
 
   void _onSave() {
@@ -109,6 +113,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             options: MapOptions(
               initialCenter: const LatLng(0, 0),
               initialZoom: 2,
+              onMapReady: () {
+                _isMapReady = true;
+                if (_fetchedLocation != null) {
+                  _mapController.move(_fetchedLocation!, 15.0);
+                }
+              },
               onTap: (tapPosition, point) {
                 setState(() {
                   _selectedLocation = point;
@@ -125,7 +135,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   circles: [
                     CircleMarker(
                       point: _selectedLocation!,
-                      color: Colors.blue.withOpacity(0.3),
+                      color: Colors.blue.withValues(alpha: 0.3),
                       borderColor: Colors.blue,
                       borderStrokeWidth: 2,
                       useRadiusInMeter: true,
@@ -150,7 +160,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               left: 20,
               right: 20,
               child: Card(
-                color: Theme.of(context).colorScheme.surface.withOpacity(0.9),
+                color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(

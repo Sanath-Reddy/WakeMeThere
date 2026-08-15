@@ -65,7 +65,7 @@ Future<void> _runMonitoringLoop(ServiceInstance service) async {
     if (service is AndroidServiceInstance) {
       if (await service.isForegroundService()) {
         try {
-          Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+          Position position = await Geolocator.getCurrentPosition(locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
           
           final box = Hive.box('alarmsBox');
           double minDistance = double.infinity;
@@ -89,10 +89,10 @@ Future<void> _runMonitoringLoop(ServiceInstance service) async {
                 // Trigger Alarm Notification
                 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
                 flutterLocalNotificationsPlugin.show(
-                  alarm.id.hashCode,
-                  '📍 Destination Reached!',
-                  'You have arrived at: ${alarm.name}',
-                  const NotificationDetails(
+                  id: alarm.id.hashCode,
+                  title: '📍 Destination Reached!',
+                  body: 'You have arrived at: ${alarm.name}',
+                  notificationDetails: const NotificationDetails(
                     android: AndroidNotificationDetails(
                       'geo_alarm_channel',
                       'Geo Alarms',
@@ -149,7 +149,7 @@ Future<void> _runMonitoringLoop(ServiceInstance service) async {
           }
 
         } catch (e) {
-          debugPrint("Location Background Error: \$e");
+          debugPrint("Location Background Error: $e");
         }
       }
     }
