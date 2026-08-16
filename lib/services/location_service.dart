@@ -75,6 +75,30 @@ Future<void> _runMonitoringLoop(ServiceInstance service) async {
             final alarm = AlarmModel.fromMap(map);
             
             if (alarm.isActive) {
+              final now = DateTime.now();
+
+              if (alarm.validTo != null && now.isAfter(alarm.validTo!)) {
+                // Expire the alarm
+                final updatedAlarm = AlarmModel(
+                  id: alarm.id,
+                  name: alarm.name,
+                  latitude: alarm.latitude,
+                  longitude: alarm.longitude,
+                  radiusInMeters: alarm.radiusInMeters,
+                  isActive: false,
+                  contactNumber: alarm.contactNumber,
+                  validFrom: alarm.validFrom,
+                  validTo: alarm.validTo,
+                );
+                await box.put(key, updatedAlarm.toMap());
+                continue;
+              }
+
+              if (alarm.validFrom != null && now.isBefore(alarm.validFrom!)) {
+                // Not yet valid, ignore for now
+                continue;
+              }
+
               final distance = Geolocator.distanceBetween(
                 position.latitude, position.longitude,
                 alarm.latitude, alarm.longitude,
@@ -128,6 +152,8 @@ Future<void> _runMonitoringLoop(ServiceInstance service) async {
                   radiusInMeters: alarm.radiusInMeters,
                   isActive: false,
                   contactNumber: alarm.contactNumber,
+                  validFrom: alarm.validFrom,
+                  validTo: alarm.validTo,
                 );
                 await box.put(key, updatedAlarm.toMap());
               }

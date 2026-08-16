@@ -1,4 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import '../models/time_alarm_model.dart';
+import 'dart:typed_data';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -25,5 +28,37 @@ class NotificationService {
       body: body,
       notificationDetails: platformChannelSpecifics,
     );
+  }
+
+  static Future<void> scheduleTimeAlarm(TimeAlarmModel alarm) async {
+    final androidSpecifics = AndroidNotificationDetails(
+      'time_alarm_channel',
+      'Time Alarms',
+      channelDescription: 'Notifications for time based alarms',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+      playSound: true,
+      enableVibration: true,
+      additionalFlags: alarm.continuousRing ? Int32List.fromList(<int>[4]) : null, // FLAG_INSISTENT
+      timeoutAfter: alarm.continuousRing ? 60000 : null, // 60 seconds max if continuous
+    );
+    final platformChannelSpecifics = NotificationDetails(android: androidSpecifics);
+
+    await _notificationsPlugin.zonedSchedule(
+      alarm.id.hashCode,
+      '⏰ Time Alarm: ${alarm.name}',
+      'Scheduled alarm is ringing!',
+      tz.TZDateTime.from(alarm.scheduledDateTime, tz.local),
+      platformChannelSpecifics,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.dateAndTime,
+    );
+  }
+
+  static Future<void> cancelAlarm(String id) async {
+    await _notificationsPlugin.cancel(id.hashCode);
   }
 }

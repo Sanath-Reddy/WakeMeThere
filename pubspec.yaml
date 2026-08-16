@@ -47,6 +47,10 @@ dependencies:
   uuid: ^4.6.0
   audioplayers: ^6.8.1
   url_launcher: ^6.3.2
+  timezone: ^0.11.1
+  flutter_timezone: ^5.1.0
+  intl: ^0.20.3
+  alarm: ^5.10.0
 
 dev_dependencies:
   flutter_test:

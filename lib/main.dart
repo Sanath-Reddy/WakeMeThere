@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'router.dart';
@@ -10,9 +11,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('alarmsBox');
+  await Hive.openBox('timeAlarmsBox');
   
   await NotificationService.initialize();
   await initializeBackgroundService();
+  tz.initializeTimeZones();
 
   runApp(
     const ProviderScope(

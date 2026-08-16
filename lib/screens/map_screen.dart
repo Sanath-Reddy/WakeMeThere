@@ -59,44 +59,113 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       builder: (context) {
         String name = "New Location";
         String contactNumber = "";
-        return AlertDialog(
-          title: const Text("Save Alarm"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                autofocus: true,
-                decoration: const InputDecoration(labelText: "Alarm Name"),
-                onChanged: (val) => name = val,
+        bool useTimeWindow = false;
+        DateTime? validFrom;
+        DateTime? validTo;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Save Geo Alarm"),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      autofocus: true,
+                      decoration: const InputDecoration(labelText: "Alarm Name"),
+                      onChanged: (val) => name = val,
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(labelText: "Contact to Notify (Optional)"),
+                      onChanged: (val) => contactNumber = val,
+                    ),
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text("Add Time Window"),
+                      subtitle: const Text("Only trigger within a specific time period"),
+                      value: useTimeWindow,
+                      onChanged: (val) {
+                        setState(() {
+                          useTimeWindow = val;
+                          if (val) {
+                            validFrom = DateTime.now();
+                            validTo = DateTime.now().add(const Duration(hours: 1));
+                          } else {
+                            validFrom = null;
+                            validTo = null;
+                          }
+                        });
+                      },
+                    ),
+                    if (useTimeWindow) ...[
+                      ListTile(
+                        title: const Text("Start Time"),
+                        subtitle: Text(validFrom != null ? "${validFrom!.year}-${validFrom!.month.toString().padLeft(2,'0')}-${validFrom!.day.toString().padLeft(2,'0')} ${validFrom!.hour.toString().padLeft(2,'0')}:${validFrom!.minute.toString().padLeft(2,'0')}" : ""),
+                        trailing: const Icon(Icons.edit),
+                        onTap: () async {
+                          final date = await showDatePicker(context: context, initialDate: validFrom ?? DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
+                          if (date != null) {
+                            if (!context.mounted) return;
+                            final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(validFrom ?? DateTime.now()));
+                            if (time != null) {
+                              setState(() => validFrom = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+                            }
+                          }
+                        },
+                      ),
+                      ListTile(
+                        title: const Text("End Time"),
+                        subtitle: Text(validTo != null ? "${validTo!.year}-${validTo!.month.toString().padLeft(2,'0')}-${validTo!.day.toString().padLeft(2,'0')} ${validTo!.hour.toString().padLeft(2,'0')}:${validTo!.minute.toString().padLeft(2,'0')}" : ""),
+                        trailing: const Icon(Icons.edit),
+                        onTap: () async {
+                          final date = await showDatePicker(context: context, initialDate: validTo ?? DateTime.now(), firstDate: DateTime.now(), lastDate: DateTime.now().add(const Duration(days: 365)));
+                          if (date != null) {
+                            if (!context.mounted) return;
+                            final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(validTo ?? DateTime.now()));
+                            if (time != null) {
+                              setState(() => validTo = DateTime(date.year, date.month, date.day, time.hour, time.minute));
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 8),
-              TextField(
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: "Contact to Notify (Optional)"),
-                onChanged: (val) => contactNumber = val,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                ref.read(alarmProvider.notifier).addAlarm(
-                  name.isEmpty ? "New Location" : name,
-                  _selectedLocation!.latitude,
-                  _selectedLocation!.longitude,
-                  _radius,
-                  contactNumber: contactNumber.isEmpty ? null : contactNumber,
-                );
-                Navigator.pop(context);
-                context.pop();
-              },
-              child: const Text("Save"),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (useTimeWindow && validFrom != null && validTo != null) {
+                      if (validTo!.isBefore(validFrom!)) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('End time must be after start time')));
+                        return;
+                      }
+                    }
+
+                    ref.read(alarmProvider.notifier).addAlarm(
+                      name.isEmpty ? "New Location" : name,
+                      _selectedLocation!.latitude,
+                      _selectedLocation!.longitude,
+                      _radius,
+                      contactNumber: contactNumber.isEmpty ? null : contactNumber,
+                      validFrom: useTimeWindow ? validFrom : null,
+                      validTo: useTimeWindow ? validTo : null,
+                    );
+                    Navigator.pop(context);
+                    context.pop();
+                  },
+                  child: const Text("Save"),
+                ),
+              ],
+            );
+          }
         );
       }
     );

@@ -24,7 +24,7 @@ class AlarmNotifier extends StateNotifier<List<AlarmModel>> {
     state = loadedAlarms;
   }
 
-  Future<void> addAlarm(String name, double lat, double lng, double radius, {String? contactNumber}) async {
+  Future<void> addAlarm(String name, double lat, double lng, double radius, {String? contactNumber, DateTime? validFrom, DateTime? validTo}) async {
     final newAlarm = AlarmModel(
       id: const Uuid().v4(),
       name: name,
@@ -33,6 +33,8 @@ class AlarmNotifier extends StateNotifier<List<AlarmModel>> {
       radiusInMeters: radius,
       isActive: true,
       contactNumber: contactNumber,
+      validFrom: validFrom,
+      validTo: validTo,
     );
     final box = Hive.box(_boxName);
     await box.put(newAlarm.id, newAlarm.toMap());
@@ -52,6 +54,8 @@ class AlarmNotifier extends StateNotifier<List<AlarmModel>> {
         radiusInMeters: alarm.radiusInMeters,
         isActive: !alarm.isActive,
         contactNumber: alarm.contactNumber,
+        validFrom: alarm.validFrom,
+        validTo: alarm.validTo,
       );
       await box.put(id, updatedAlarm.toMap());
       final newState = [...state];

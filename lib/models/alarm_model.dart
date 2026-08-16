@@ -7,6 +7,8 @@ class AlarmModel {
   final double radiusInMeters;
   final bool isActive;
   final String? contactNumber;
+  final DateTime? validFrom;
+  final DateTime? validTo;
 
   AlarmModel({
     required this.id,
@@ -16,6 +18,8 @@ class AlarmModel {
     required this.radiusInMeters,
     this.isActive = true,
     this.contactNumber,
+    this.validFrom,
+    this.validTo,
   });
 
   Map<String, dynamic> toMap() {
@@ -27,6 +31,8 @@ class AlarmModel {
       'radiusInMeters': radiusInMeters,
       'isActive': isActive,
       'contactNumber': contactNumber,
+      'validFrom': validFrom?.toIso8601String(),
+      'validTo': validTo?.toIso8601String(),
     };
   }
 
@@ -39,6 +45,8 @@ class AlarmModel {
       radiusInMeters: map['radiusInMeters'] is int ? (map['radiusInMeters'] as int).toDouble() : map['radiusInMeters'],
       isActive: map['isActive'] ?? true,
       contactNumber: map['contactNumber'],
+      validFrom: map['validFrom'] != null ? DateTime.tryParse(map['validFrom']) : null,
+      validTo: map['validTo'] != null ? DateTime.tryParse(map['validTo']) : null,
     );
   }
 }
